@@ -1,5 +1,14 @@
 from __future__ import annotations
 
+from datetime import datetime
+from html import escape
+try:
+    from zoneinfo import ZoneInfo
+except ImportError:
+    ZoneInfo = None
+
+import streamlit as st
+
 from html import escape
 
 import streamlit as st
@@ -49,7 +58,14 @@ def percent_label(percent: float) -> str:
         return f"{rounded:.0f}%"
     return f"{rounded:.1f}%"
 
-
+def reporting_date() -> str:
+    if ZoneInfo is not None:
+        try:
+            return datetime.now(ZoneInfo("Australia/Sydney")).strftime("%d %b %Y")
+        except Exception:
+            pass
+    return datetime.now().strftime("%d %b %Y")
+    
 def metrics() -> dict[str, object]:
     months = [{**month, "total": month_total(month)} for month in MONTHS]
     peak = max(months, key=lambda month: int(month["total"]))
@@ -434,14 +450,14 @@ def css() -> str:
 
 
 def render_header() -> str:
-    return """
+    return f"""
     <header class="hero">
       <div class="brand" aria-label="Oracle">ORACLE</div>
       <div>
         <h1>Resource Bandwidth Monthly Dashboard</h1>
         <p>Executive operations view across EMEA, JAPAC, and NAMER</p>
       </div>
-      <div class="date-stamp"><strong>Reporting snapshot</strong>Data as of 12 May 2026</div>
+       <div class="date-stamp"><strong>Reporting snapshot</strong>Data as of {escape(reporting_date())}</div>
     </header>
     """
 
@@ -528,7 +544,6 @@ def render_matrix(data: dict[str, object]) -> str:
             <tr>
               <th scope="row">
                 {escape(region)}
-                <span class="region-note">{CAPACITY[region]} monthly capacity</span>
               </th>
               {''.join(cells)}
             </tr>
@@ -641,11 +656,10 @@ def main() -> None:
       {render_kpis(data)}
       {render_matrix(data)}
       {render_migrations()}
-      {render_briefing(data)}
       <div class="footer-note">Monthly resource planning view | Internal operations | Risk threshold: 90% utilization</div>
     </div>
     """
-    st.html(dashboard_html)
+     st.markdown(dashboard_html, unsafe_allow_html=True)
 
 
 if __name__ == "__main__":
