@@ -645,7 +645,7 @@ def main() -> None:
       <div class="footer-note">Monthly resource planning view | Internal operations | Risk threshold: 90% utilization</div>
     </div>
     """
-    st.markdown(dashboard_html, unsafe_allow_html=True)
+    st.html(dashboard_html)
 
 
 if __name__ == "__main__":
